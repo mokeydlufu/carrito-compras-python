@@ -10,6 +10,10 @@ from dotenv import load_dotenv
 from database import engine, Base, SessionLocal
 from routers import products, cart, checkout
 import models
+import mimetypes
+
+mimetypes.add_type("application/javascript", ".js")
+mimetypes.add_type("text/css", ".css")
 
 load_dotenv()
 
