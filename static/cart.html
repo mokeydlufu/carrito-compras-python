@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStore — Mi Carrito</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">Tech<span>Store</span></div>
+        <div class="nav-icons">
+            <button class="nav-icon-btn" onclick="window.location.href='/'" title="Inicio">🏠</button>
+            <button class="nav-icon-btn" title="Mi cuenta">👤</button>
+            <button class="nav-icon-btn" onclick="window.location.href='/cart'" title="Carrito">
+                🛒
+                <span class="cart-badge" id="cart-count">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="page-hero">
+            <div>
+                <span class="eyebrow">Tu pedido</span>
+                <h1 class="page-title">Mi Carrito de Compras</h1>
+                <p>Revisa y ajusta tu carrito antes de finalizar tu compra.</p>
+            </div>
+            <a href="/" class="btn btn-secondary">Seguir comprando</a>
+        </div>
+
+        <div class="cart-layout">
+            <div class="cart-list" id="cart-items-container">
+                <div class="loading">Cargando tu carrito...</div>
+            </div>
+
+            <div class="cart-summary">
+                <div class="summary-title">Resumen del Pedido</div>
+
+                <div class="summary-line">
+                    <span>Subtotal</span>
+                    <span id="cart-subtotal">S/. 0.00</span>
+                </div>
+                <div class="summary-line">
+                    <span>IGV (18%)</span>
+                    <span id="cart-igv">S/. 0.00</span>
+                </div>
+                <div class="summary-line">
+                    <span>Envío</span>
+                    <span id="cart-envio">S/. 15.00</span>
+                </div>
+
+                <hr class="summary-divider">
+
+                <div class="summary-total-line">
+                    <span>Total</span>
+                    <span id="cart-total">S/. 0.00</span>
+                </div>
+
+                <a href="/checkout" class="btn btn-primary btn-block">Proceder al Pago</a>
+
+                <div class="payment-icons">
+                    <span class="pay-icon">🛡️ Pago seguro</span>
+                    <span class="pay-icon">VISA</span>
+                    <span class="pay-icon">MC</span>
+                    <span class="pay-icon">YAPE</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 TechStore &mdash; <a href="/docs" target="_blank">API Swagger</a></p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

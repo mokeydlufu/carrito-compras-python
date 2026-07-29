@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStore — Finalizar Compra</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">Tech<span>Store</span></div>
+        <div class="nav-icons">
+            <button class="nav-icon-btn" onclick="window.location.href='/'" title="Inicio">🏠</button>
+            <button class="nav-icon-btn" onclick="window.location.href='/cart'" title="Carrito">
+                🛒
+                <span class="cart-badge" id="cart-count">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="page-hero page-hero-small">
+            <div>
+                <span class="eyebrow">Checkout</span>
+                <h1 class="page-title">Finaliza tu compra</h1>
+                <p>Revisa los productos, elige tu método de pago y confirma tu pedido de forma segura.</p>
+            </div>
+            <div class="hero-actions">
+                <a href="/cart" class="btn btn-secondary">Volver al carrito</a>
+            </div>
+        </div>
+
+        <div class="checkout-meta">
+            <div class="checkout-stepper">
+                <div class="step completed">Carrito</div>
+                <div class="step completed">Revisión</div>
+                <div class="step active">Pago</div>
+            </div>
+            <div class="checkout-badge">Compra segura · envío simulado</div>
+        </div>
+
+        <div class="checkout-layout">
+            <div class="panel order-summary-panel">
+                <div class="panel-title">Resumen del pedido</div>
+                <div class="order-meta">
+                    <div><strong>Estado:</strong> <span class="tag tag-pending">PENDIENTE</span></div>
+                    <div><strong>Productos:</strong> <span class="tag tag-small" id="checkout-items-count">0</span></div>
+                </div>
+
+                <div class="delivery-card">
+                    <div class="delivery-head">
+                        <span>Entrega estándar</span>
+                        <strong>S/. 15.00</strong>
+                    </div>
+                    <p>Recibe tu pedido en 3-5 días hábiles. El coste de envío está incluido en el total.</p>
+                </div>
+
+                <div id="checkout-items-list" class="checkout-items-list">
+                    <!-- Items cargados por JS -->
+                </div>
+
+                <div class="summary-block">
+                    <div class="summary-line">
+                        <span>Subtotal</span>
+                        <span id="checkout-subtotal">S/. 0.00</span>
+                    </div>
+                    <div class="summary-line">
+                        <span>IGV (18%)</span>
+                        <span id="checkout-igv">S/. 0.00</span>
+                    </div>
+                    <div class="summary-line">
+                        <span>Envío</span>
+                        <span>S/. 15.00</span>
+                    </div>
+                </div>
+
+                <hr class="summary-divider">
+
+                <div class="summary-total-line">
+                    <span>Total a pagar</span>
+                    <span id="checkout-total">S/. 0.00</span>
+                </div>
+
+                <p class="small-text">El total se calcula en el backend y se procesa de forma segura al momento del pago.</p>
+            </div>
+
+            <div class="panel payment-panel">
+                <div class="panel-title">Pago seguro</div>
+
+                <div class="payment-summary">
+                    <div class="payment-summary-line">
+                        <span>Método seleccionado</span>
+                        <strong id="selected-method">Tarjeta Simulada</strong>
+                    </div>
+                    <div class="payment-summary-note" id="payment-note">
+                        Elige un método y revisa las instrucciones antes de confirmar.
+                    </div>
+                </div>
+
+                <div class="checkout-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="shipping-name">Nombre completo</label>
+                            <input id="shipping-name" class="form-control" type="text" placeholder="Juan Perez">
+                        </div>
+                        <div class="form-group">
+                            <label for="shipping-email">Correo electrónico</label>
+                            <input id="shipping-email" class="form-control" type="email" placeholder="correo@dominio.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="shipping-address">Dirección de envío</label>
+                        <input id="shipping-address" class="form-control" type="text" placeholder="Av. Principal 123">
+                        <span class="form-helper">Incluye distrito o referencia si lo deseas.</span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="shipping-city">Ciudad</label>
+                            <input id="shipping-city" class="form-control" type="text" placeholder="Lima">
+                        </div>
+                        <div class="form-group">
+                            <label for="shipping-postal">Código postal</label>
+                            <input id="shipping-postal" class="form-control" type="text" placeholder="15001">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="payment-tabs">
+                    <label class="method-opt selected" id="label-tarjeta">
+                        <input type="radio" name="metodo_pago" value="TARJETA_SIMULADA" checked>
+                        <span>💳 Tarjeta Simulada</span>
+                    </label>
+                    <label class="method-opt" id="label-yape">
+                        <input type="radio" name="metodo_pago" value="YAPE">
+                        <span>🟣 Yape Simulado</span>
+                    </label>
+                    <label class="method-opt" id="label-stripe">
+                        <input type="radio" name="metodo_pago" value="STRIPE">
+                        <span>🌐 Stripe Sandbox</span>
+                    </label>
+                </div>
+
+                <div class="payment-info-card" id="payment-details">
+                    <strong>Información de pago</strong>
+                    <p>Está a punto de generar un pago de demostración. El método seleccionado no procesará cargos reales en este demo.</p>
+                </div>
+
+                <div id="payment-message"></div>
+
+                <button id="btn-pay" class="btn btn-primary btn-block">
+                    Confirmar pago
+                </button>
+
+                <div class="payment-footer">
+                    <div class="payment-icons">
+                        <span class="pay-icon">🛡️ Pago seguro</span>
+                        <span class="pay-icon">VISA</span>
+                        <span class="pay-icon">MC</span>
+                        <span class="pay-icon">YAPE</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 TechStore &mdash; <a href="/docs" target="_blank">API Swagger</a></p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

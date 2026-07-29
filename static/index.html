@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStore — Catálogo de Productos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css?v=1.1">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">Tech<span>Store</span></div>
+        <div class="nav-icons">
+            <div class="search-wrapper">
+                <input type="text" id="catalog-search" placeholder="Buscar productos..." class="search-input">
+            </div>
+            <button class="nav-icon-btn" title="Mi cuenta">👤</button>
+            <button class="nav-icon-btn" onclick="window.location.href='/cart'" title="Carrito">
+                🛒
+                <span class="cart-badge" id="cart-count">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="hero hero-store">
+            <div>
+                <span class="eyebrow">Shop online</span>
+                <h1>Catálogo de Productos</h1>
+                <p>Compra los mejores productos tecnológicos en un solo lugar.</p>
+            </div>
+            <div class="hero-actions">
+                <button class="btn btn-secondary" onclick="window.location.href='/cart'">Ver carrito</button>
+                <button class="btn btn-primary" onclick="openProductModal()">Agregar producto</button>
+            </div>
+        </div>
+
+        <div id="product-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Agregar Producto Electrónico</h2>
+                    <button class="close-btn" onclick="closeProductModal()">&times;</button>
+                </div>
+                <form id="product-form" class="product-form-modal">
+                    <input type="hidden" id="product-id">
+                    <input type="text" id="product-name" placeholder="Nombre (ej. Laptop, Teléfono)" required>
+                    <textarea id="product-description" placeholder="Descripción completa del producto..."
+                        rows="3"></textarea>
+                    <div class="form-row-min">
+                        <input type="number" id="product-price" placeholder="Precio (S/.)" step="0.01" required>
+                        <input type="number" id="product-stock" placeholder="Stock disponible" required>
+                    </div>
+                    <input type="text" id="product-image" placeholder="URL de imagen atractiva">
+                    <div class="product-form-actions modal-actions">
+                        <button type="button" id="cancel-edit" class="btn btn-secondary"
+                            onclick="closeProductModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar producto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="products-grid" id="products-container">
+            <div class="loading">Cargando productos...</div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 TechStore &mdash;
+            <a href="/docs" target="_blank">API Swagger Docs</a>
+        </p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/js/app.js?v=1.1"></script>
+</body>
+
+</html>
