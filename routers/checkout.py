@@ -1,9 +1,10 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from database import get_db
 import models
-from core.payments import PagoTarjetaSimulado, PagoYapeSimulado, StripePayment
+from core.payments import PagoTarjetaSimulado, PagoYapeSimulado, StripePayment, PayPalPayment, MercadoPagoPayment
 
 router = APIRouter(prefix="/api/checkout", tags=["checkout"])
 
@@ -39,6 +40,8 @@ def process_checkout(req: CheckoutRequest, db: Session = Depends(get_db)):
         "TARJETA_SIMULADA": PagoTarjetaSimulado,
         "YAPE": PagoYapeSimulado,
         "STRIPE": StripePayment,
+        "PAYPAL": PayPalPayment,
+        "MERCADOPAGO": MercadoPagoPayment,
     }
     if req.metodo not in estrategias:
         raise HTTPException(status_code=400, detail="Método de pago inválido")
@@ -62,7 +65,9 @@ def process_checkout(req: CheckoutRequest, db: Session = Depends(get_db)):
         db.commit()
         raise HTTPException(status_code=400, detail="Monto no válido para el método seleccionado")
 
-    res = estrategia.procesar(total, {})
+    # Datos adicionales para el procesador (por ejemplo email del cliente)
+    datos_pago = {"email": req.shipping.email}
+    res = estrategia.procesar(total, datos_pago)
     estado_orden = "PAGADO" if res.get("success") and res.get("estado") == "PAGADO" else res.get("estado", "PENDIENTE")
     if not res.get("success"):
         estado_orden = "RECHAZADO"
@@ -78,13 +83,33 @@ def process_checkout(req: CheckoutRequest, db: Session = Depends(get_db)):
     )
     db.add(payment)
 
-    if res.get("success"):
+    # Solo vaciar el carrito si la orden resultó PAGADO (no basta con success=True en modos PENDIENTE)
+    if estado_orden == "PAGADO":
         for it in cart_items:
             db.delete(it)
 
     db.commit()
     return {"success": res.get("success"), "order_id": order.id, "payment_result": res}
 
+@router.get("/config/stripe", summary="Obtener llave publica para UI")
+def get_stripe_config():
+    # Retorna un pk de pruebas de Stripe por defecto para que funcione el frontend Sandbox siempre
+    return {"public_key": os.getenv("STRIPE_PUBLIC_KEY", "pk_test_TYooMQauvdEDq54NiTphI7jx")}
+
+@router.post("/confirm/{order_id}", summary="Confirmar desde frontend (Stripe Elements)")
+def confirm_order_from_frontend(order_id: int, db: Session = Depends(get_db)):
+    order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Orden no encontrada")
+    
+    order.estado = "PAGADO"
+    payment = db.query(models.Payment).filter(models.Payment.order_id == order_id).first()
+    if payment:
+        payment.estado = "PAGADO"
+    
+    # Vaciar carrito de este wey es dificil sin auth, pero en un ecom normal seria basado en cart_id.
+    db.commit()
+    return {"success": True, "order_id": order.id}
 
 @router.get("/order/{order_id}", summary="Ver estado de una orden")
 def get_order(order_id: int, db: Session = Depends(get_db)):

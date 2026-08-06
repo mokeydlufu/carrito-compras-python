@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 
-from database import engine, Base, SessionLocal
+from database import engine, Base, SessionLocal, ensure_database_schema
 from routers import products, cart, checkout
 import models
 import mimetypes
@@ -17,8 +17,8 @@ mimetypes.add_type("text/css", ".css")
 
 load_dotenv()
 
-# Crear tablas
-Base.metadata.create_all(bind=engine)
+# Crear tablas y asegurar columnas necesarias
+ensure_database_schema(engine=engine, base=Base)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

@@ -25,30 +25,63 @@ function updatePaymentInfo() {
     const selectedMethodText = {
         TARJETA_SIMULADA: 'Tarjeta Simulada',
         YAPE: 'Yape Simulado',
-        STRIPE: 'Stripe Sandbox'
+        STRIPE: 'Stripe Sandbox',
+        PAYPAL: 'PayPal Sandbox',
+        MERCADOPAGO: 'Mercado Pago Sandbox'
     }[methodLabel] || 'Método de pago';
 
     const noteEl = document.getElementById('payment-note');
     const selectedEl = document.getElementById('selected-method');
     const detailsEl = document.getElementById('payment-details');
+    const flowBox = document.getElementById('payment-flow-box');
+    const flowText = document.getElementById('payment-flow-text');
+    const stepBadge = document.getElementById('payment-step-badge');
 
     if (selectedEl) selectedEl.textContent = selectedMethodText;
     if (noteEl) {
         noteEl.textContent = {
             TARJETA_SIMULADA: 'Pago simulado con tarjeta. No requiere datos reales.',
             YAPE: 'Pago simulado vía Yape. Solo para demostración del flujo.',
-            STRIPE: 'Stripe en modo sandbox. Usa tarjeta de prueba 4242 4242 4242 4242.'
+            STRIPE: 'Stripe en modo sandbox. Requiere credenciales reales de Stripe para procesar un pago verdadero.',
+            PAYPAL: 'PayPal Sandbox: requiere credenciales reales de PayPal para crear una orden de pago real.',
+            MERCADOPAGO: 'Mercado Pago Sandbox: requiere un access token real para crear un pago real.'
         }[methodLabel] || 'Elige un método para ver las instrucciones.';
     }
-    if (detailsEl) {
-        detailsEl.innerHTML = `
-            <strong>Información de pago</strong>
-            <p>${{
-                TARJETA_SIMULADA: 'Tu pago se procesará en modo de prueba. Usa cualquier número de tarjeta ficticio para continuar.',
-                YAPE: 'Simulamos un cobro con Yape. No se realizará ninguna transferencia real.',
-                STRIPE: 'Stripe sandbox está habilitado. Usa la tarjeta de prueba 4242 4242 4242 4242 y cualquier fecha/cvc.'
-            }[methodLabel] || 'Selecciona un método para revisar cómo pagar.'}</p>
+    if (detailsEl && flowBox && flowText && stepBadge) {
+        const content = {
+            TARJETA_SIMULADA: {
+                step: 'Paso 2 · Validación',
+                text: 'Se valida el pedido y se genera un pago de prueba con tarjeta. La compra queda registrada como demostración.'
+            },
+            YAPE: {
+                step: 'Paso 2 · Validación',
+                text: 'Se inicia la verificación del cobro por Yape y se prepara la orden para el proceso de demostración.'
+            },
+            STRIPE: {
+                step: 'Paso 2 · Sandbox',
+                text: 'El backend intentará crear un PaymentIntent real en Stripe si tienes credenciales configuradas. Si no, se devolverá un rechazo seguro.'
+            },
+            PAYPAL: {
+                step: 'Paso 2 · Sandbox',
+                text: 'El backend intentará crear una orden real en PayPal Sandbox si las credenciales están activas.'
+            },
+            MERCADOPAGO: {
+                step: 'Paso 2 · Sandbox',
+                text: 'El backend intentará crear un pago real en Mercado Pago sandbox si el access token está configurado.'
+            }
+        }[methodLabel] || {
+            step: 'Paso 1 · Selección',
+            text: 'Selecciona un método de pago para comenzar el proceso.'
+        };
+
+        stepBadge.textContent = content.step;
+        flowText.innerHTML = `
+            <strong>${selectedMethodText}</strong><br>
+            <span>${content.text}</span>
         `;
+        flowBox.style.background = methodLabel === 'STRIPE' || methodLabel === 'PAYPAL' || methodLabel === 'MERCADOPAGO'
+            ? 'linear-gradient(135deg, #eff6ff, #f8fafc)'
+            : '#f8fafc';
     }
 }
 
@@ -93,7 +126,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     if (document.getElementById('cart-items-container')) renderCartPage();
-    if (document.getElementById('checkout-items-list')) setupCheckout();
+    if (document.getElementById('checkout-items-list')) {
+        setupCheckout();
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Pago sandbox',
+                text: 'Al elegir Stripe, PayPal o Mercado Pago, el sistema intentará abrir el flujo real de prueba si tienes credenciales configuradas.',
+                icon: 'info',
+                confirmButtonText: 'Entendido',
+                timer: 6000,
+                timerProgressBar: true
+            });
+        }
+    }
 
     // Estilar radios de checkout
     document.querySelectorAll('input[name="metodo_pago"]').forEach(radio => {
@@ -385,6 +430,23 @@ async function removeFromCart(id) {
 // ================================================
 // CHECKOUT - PAGO FINAL
 // ================================================
+function showPaymentModal(title, body, progress) {
+    const modal = document.getElementById('payment-modal');
+    const titleEl = document.getElementById('payment-modal-title');
+    const bodyEl = document.getElementById('payment-modal-body');
+    const progressEl = document.getElementById('payment-modal-progress');
+    if (!modal || !titleEl || !bodyEl || !progressEl) return;
+    titleEl.textContent = title;
+    bodyEl.innerHTML = body;
+    progressEl.textContent = progress;
+    modal.style.display = 'flex';
+}
+
+function closePaymentModal() {
+    const modal = document.getElementById('payment-modal');
+    if (modal) modal.style.display = 'none';
+}
+
 async function setupCheckout() {
     try {
         const res = await fetch(`/api/cart/${CART_ID}`);
@@ -443,63 +505,194 @@ async function setupCheckout() {
         const btn = document.getElementById('btn-pay');
         const method = document.querySelector('input[name="metodo_pago"]:checked').value;
         const msgDiv = document.getElementById('payment-message');
+        const shippingData = getShippingData();
 
-        const confirm = await Swal.fire({
-            title: 'Confirmar Pago',
-            text: `Método seleccionado: ${method.replace('_', ' ')}`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, pagar ahora',
-            cancelButtonText: 'Cancelar',
-            background: '#fff', color: '#1e293b',
-            confirmButtonColor: '#2563eb',
-        });
-        if (!confirm.isConfirmed) return;
+        if (!shippingData) {
+            Swal.fire({ icon: 'error', title: 'Datos incompletos', text: 'Completa todos los datos de envío antes de pagar.' });
+            return;
+        }
 
         btn.disabled = true;
-        btn.textContent = 'Procesando pago...';
-        msgDiv.innerHTML = '';
+        btn.textContent = 'Abriendo pasarela...';
 
-        try {
-            const shippingData = getShippingData();
-            if (!shippingData) {
-                msgDiv.innerHTML = `<span style="color:#ef4444;">❌ Completa todos los datos de envío antes de pagar.</span>`;
-                btn.disabled = false;
-                btn.textContent = 'Confirmar pago';
-                return;
-            }
-
-            const res = await fetch('/api/checkout/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cart_id: CART_ID, metodo: method, shipping: shippingData })
-            });
-            const data = await res.json();
-
-            if (res.ok && data.success) {
-                localStorage.removeItem('cart_id');
-                await Swal.fire({
-                    icon: 'success',
-                    title: '¡Pago Exitoso!',
-                    html: `
-                        <b>Orden #${data.order_id} confirmada</b><br>
-                        <small style="color:#64748b">ID Transacción: ${data.payment_result.transaction_id}</small><br>
-                        <small style="color:#64748b">${data.payment_result.mensaje}</small>
-                    `,
-                    confirmButtonColor: '#2563eb',
-                    background: '#fff', color: '#1e293b',
-                });
-                window.location.href = '/';
-            } else {
-                const errorMsg = data.detail || data.error || 'Error desconocido';
-                msgDiv.innerHTML = `<span style="color:#ef4444;">❌ ${errorMsg}</span>`;
-                btn.disabled = false;
-                btn.textContent = 'Intentar de Nuevo';
-            }
-        } catch (e) {
-            msgDiv.innerHTML = `<span style="color:#ef4444;">❌ Error de conexión con el servidor.</span>`;
-            btn.disabled = false;
-            btn.textContent = 'Realizar Pago';
+        if (method === 'YAPE') {
+            await handleYapePayment(shippingData, msgDiv);
+        } else if (method === 'TARJETA_SIMULADA') {
+            await handleMockCardPayment(shippingData, msgDiv);
+        } else if (method === 'STRIPE') {
+            await handleStripePayment(shippingData, msgDiv);
         }
+
+        btn.disabled = false;
+        btn.textContent = 'Confirmar pago';
     });
+}
+
+// ================================================
+// YAPE
+// ================================================
+async function handleYapePayment(shippingData, msgDiv) {
+    const total = document.getElementById('checkout-total').textContent;
+    const confirm = await Swal.fire({
+        title: 'Pago con Yape',
+        html: `
+            <p>Escanea este código QR con tu app de Yape para pagar <strong>${total}</strong></p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=YAPE_FAKE_QR" style="margin: 20px auto; border-radius: 8px;">
+            <p style="color: #64748b; font-size: 0.9em;">(Esto es una simulación del modo sandbox)</p>
+        `,
+        confirmButtonText: 'Ya Yapeé',
+        showCancelButton: true,
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (confirm.isConfirmed) {
+        Swal.fire({ title: 'Verificando...', allowOutsideClick: false });
+        Swal.showLoading();
+        await procesarBackend('YAPE', shippingData, msgDiv);
+    }
+}
+
+// ================================================
+// TARJETA SIMULADA
+// ================================================
+async function handleMockCardPayment(shippingData, msgDiv) {
+    const confirm = await Swal.fire({
+        title: 'Ingresa tu tarjeta',
+        html: `
+            <div style="text-align: left;">
+                <label>Número de Tarjeta</label>
+                <input type="text" class="swal2-input" placeholder="0000 0000 0000 0000" maxlength="19">
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex:1;">
+                        <label>Vencimiento</label>
+                        <input type="text" class="swal2-input" placeholder="MM/AA" maxlength="5">
+                    </div>
+                    <div style="flex:1;">
+                        <label>CVV</label>
+                        <input type="text" class="swal2-input" placeholder="123" maxlength="3">
+                    </div>
+                </div>
+            </div>
+        `,
+        confirmButtonText: 'Pagar con Tarjeta',
+        showCancelButton: true,
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (confirm.isConfirmed) {
+        Swal.fire({ title: 'Procesando cargo...', allowOutsideClick: false });
+        Swal.showLoading();
+        await procesarBackend('TARJETA_SIMULADA', shippingData, msgDiv);
+    }
+}
+
+// ================================================
+// STRIPE ELEMENTS (REAL SANDBOX)
+// ================================================
+async function handleStripePayment(shippingData, msgDiv) {
+    Swal.fire({ title: 'Conectando con Stripe...', allowOutsideClick: false });
+    Swal.showLoading();
+
+    try {
+        // 1. Obtener la llave publica
+        const confRes = await fetch('/api/config/stripe');
+        const confData = await confRes.json();
+        const stripe = Stripe(confData.public_key);
+
+        // 2. Crear el Intent en el backend
+        msgDiv.innerHTML = 'Generando orden segura...';
+        const orderRes = await fetch('/api/checkout/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cart_id: CART_ID, metodo: 'STRIPE', shipping: shippingData })
+        });
+        const orderData = await orderRes.json();
+        if (!orderData.success) throw new Error(orderData.detail || orderData.error || 'Fallo al crear orden Stripe');
+
+        const clientSecret = orderData.payment_result.client_secret;
+        const orderId = orderData.order_id;
+        Swal.close();
+
+        // 3. Abrir Popup de Stripe Elements
+        const elements = stripe.elements();
+        const cardElement = elements.create('card', {
+            style: { base: { fontSize: '16px', color: '#1e293b', '::placeholder': { color: '#aab7c4' } } }
+        });
+
+        await Swal.fire({
+            title: 'Pago seguro con Stripe',
+            html: \`
+                <div style="text-align: left; margin-bottom: 20px;">
+                    <p style="margin-bottom: 15px; font-size: 0.9em; color:#64748b;">
+                        Ingresa una tarjeta de pruebas de Stripe (ej: 4242 4242...).
+                    </p>
+                    <div id="stripe-card-mount" style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px;"></div>
+                </div>
+            \`,
+            confirmButtonText: 'Autorizar pago real (Sandbox)',
+            showCancelButton: true,
+            cancelButtonText: 'Cancelar',
+            allowOutsideClick: false,
+            didOpen: () => {
+                cardElement.mount('#stripe-card-mount');
+            },
+            preConfirm: async () => {
+                Swal.showLoading();
+                const {paymentIntent, error} = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: { card: cardElement }
+                });
+                
+                if (error) {
+                    Swal.showValidationMessage(error.message);
+                    return false;
+                }
+                
+                // Confirmamos a nuestro backend
+                await fetch(\`/api/checkout/confirm/\${orderId}\`, {method: 'POST'});
+                return true;
+            }
+        });
+
+        // 4. Mostrar éxito
+        localStorage.removeItem('cart_id');
+        await Swal.fire({
+            icon: 'success', title: '¡Pago Exitoso con Stripe!',
+            html: \`<b>Orden #\${orderId} confirmada</b>\`,
+        });
+        window.location.href = '/';
+
+    } catch (e) {
+        Swal.fire({icon: 'error', title: 'Error', text: e.message});
+    }
+}
+
+// ================================================
+// PROCESADO MOCK (YAPE Y TARJETA)
+// ================================================
+async function procesarBackend(method, shippingData, msgDiv) {
+    try {
+        const res = await fetch('/api/checkout/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cart_id: CART_ID, metodo: method, shipping: shippingData })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            localStorage.removeItem('cart_id');
+            await Swal.fire({
+                icon: 'success',
+                title: '¡Pago Exitoso!',
+                html: \`
+                    <b>Orden #\${data.order_id} confirmada</b><br>
+                    <small style="color:#64748b">ID Transacción: \${data.payment_result.transaction_id || ''}</small>
+                \`
+            });
+            window.location.href = '/';
+        } else {
+            Swal.fire({icon: 'error', title: 'Pago rechazado', text: data.detail || 'Fallo'});
+        }
+    } catch (e) {
+        Swal.fire({icon: 'error', title: 'Error de conexión', text: 'Upss. Algo falló en la red.'});
+    }
 }

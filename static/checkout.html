@@ -48,7 +48,8 @@
                 <div class="panel-title">Resumen del pedido</div>
                 <div class="order-meta">
                     <div><strong>Estado:</strong> <span class="tag tag-pending">PENDIENTE</span></div>
-                    <div><strong>Productos:</strong> <span class="tag tag-small" id="checkout-items-count">0</span></div>
+                    <div><strong>Productos:</strong> <span class="tag tag-small" id="checkout-items-count">0</span>
+                    </div>
                 </div>
 
                 <div class="delivery-card">
@@ -85,7 +86,8 @@
                     <span id="checkout-total">S/. 0.00</span>
                 </div>
 
-                <p class="small-text">El total se calcula en el backend y se procesa de forma segura al momento del pago.</p>
+                <p class="small-text">El total se calcula en el backend y se procesa de forma segura al momento del
+                    pago.</p>
             </div>
 
             <div class="panel payment-panel">
@@ -109,12 +111,14 @@
                         </div>
                         <div class="form-group">
                             <label for="shipping-email">Correo electrónico</label>
-                            <input id="shipping-email" class="form-control" type="email" placeholder="ejemplo@correo.com">
+                            <input id="shipping-email" class="form-control" type="email"
+                                placeholder="ejemplo@correo.com">
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="shipping-address">Dirección de envío</label>
-                        <input id="shipping-address" class="form-control" type="text" placeholder="Ingresa tu dirección exacta">
+                        <input id="shipping-address" class="form-control" type="text"
+                            placeholder="Ingresa tu dirección exacta">
                         <span class="form-helper">Incluye distrito o referencia si lo deseas.</span>
                     </div>
                     <div class="form-row">
@@ -142,11 +146,28 @@
                         <input type="radio" name="metodo_pago" value="STRIPE">
                         <span>🌐 Stripe Sandbox</span>
                     </label>
+                    <label class="method-opt" id="label-paypal">
+                        <input type="radio" name="metodo_pago" value="PAYPAL">
+                        <span>🔵 PayPal Sandbox</span>
+                    </label>
+                    <label class="method-opt" id="label-mercadopago">
+                        <input type="radio" name="metodo_pago" value="MERCADOPAGO">
+                        <span>🟠 Mercado Pago (Sandbox)</span>
+                    </label>
                 </div>
 
-                <div class="payment-info-card" id="payment-details">
-                    <strong>Información de pago</strong>
-                    <p>Está a punto de generar un pago de demostración. El método seleccionado no procesará cargos reales en este demo.</p>
+                <div class="payment-info-card" id="payment-details" style="display: block;">
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+                        <strong>Ventana de pago</strong>
+                        <span id="payment-step-badge"
+                            style="background:#e0f2fe; color:#0369a1; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700;">Paso
+                            1 · Selección</span>
+                    </div>
+                    <div id="payment-flow-box"
+                        style="margin-top:10px; padding:12px; border-radius:12px; background:#f8fafc; border:1px solid #e2e8f0;">
+                        <p id="payment-flow-text">Selecciona un método de pago para comenzar el proceso.</p>
+                    </div>
                 </div>
 
                 <div id="payment-message"></div>
@@ -171,8 +192,27 @@
         <p>&copy; 2026 TechStore &mdash; <a href="/docs" target="_blank">API Swagger</a></p>
     </footer>
 
+    <div id="payment-modal"
+        style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.72); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+        <div
+            style="width:min(480px, 100%); background:white; border-radius:18px; box-shadow:0 20px 50px rgba(0,0,0,0.25); padding:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 id="payment-modal-title" style="margin:0;">Procesando pago</h3>
+                <button id="payment-modal-close"
+                    style="border:none; background:#f1f5f9; width:34px; height:34px; border-radius:999px; cursor:pointer;">✕</button>
+            </div>
+            <div id="payment-modal-body" style="font-size:15px; line-height:1.5; color:#334155;">
+                Conectando con la pasarela de pago...
+            </div>
+            <div
+                style="margin-top:16px; padding:12px; border-radius:12px; background:#f8fafc; border:1px solid #e2e8f0;">
+                <div id="payment-modal-progress" style="font-weight:700; color:#2563eb;">Verificando pedido...</div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js?v=2.0"></script>
 </body>
 
 </html>
