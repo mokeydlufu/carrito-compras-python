@@ -591,78 +591,42 @@ async function handleMockCardPayment(shippingData, msgDiv) {
 }
 
 // ================================================
-// STRIPE ELEMENTS (REAL SANDBOX)
+// STRIPE CHECKOUT (REAL SANDBOX HOSPEDADO)
 // ================================================
 async function handleStripePayment(shippingData, msgDiv) {
-    Swal.fire({ title: 'Conectando con Stripe...', allowOutsideClick: false });
+    Swal.fire({ title: 'Redirigiendo a pasarela segura...', allowOutsideClick: false });
     Swal.showLoading();
 
     try {
-        const confRes = await fetch('/api/config/stripe');
-        const confData = await confRes.json();
-        const stripe = Stripe(confData.public_key);
-
-        msgDiv.innerHTML = 'Generando orden segura...';
+        msgDiv.innerHTML = 'Generando enlace de pago...';
+        const originUrl = window.location.origin;
         const orderRes = await fetch('/api/checkout/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cart_id: CART_ID, metodo: 'STRIPE', shipping: shippingData })
+            body: JSON.stringify({
+                cart_id: CART_ID,
+                metodo: 'STRIPE',
+                shipping: shippingData,
+                origin: originUrl
+            })
         });
         const orderData = await orderRes.json();
-        if (!orderData.success) throw new Error(orderData.detail || orderData.error || 'Fallo al crear orden Stripe');
 
-        const clientSecret = orderData.payment_result.client_secret;
-        const orderId = orderData.order_id;
-        Swal.close();
+        if (!orderData.success) {
+            throw new Error(orderData.detail || orderData.error || 'Fallo al inicializar sesión Stripe');
+        }
 
-        const elements = stripe.elements();
-        const cardElement = elements.create('card', {
-            style: { base: { fontSize: '16px', color: '#1e293b', '::placeholder': { color: '#aab7c4' } } }
-        });
+        const checkoutUrl = orderData.payment_result.checkout_url;
 
-        await Swal.fire({
-            title: 'Pago seguro con Stripe',
-            html: `
-                <div style="text-align: left; margin-bottom: 20px;">
-                    <p style="margin-bottom: 15px; font-size: 0.9em; color:#64748b;">
-                        Ingresa una tarjeta de pruebas de Stripe (ej: 4242 4242...).
-                    </p>
-                    <div id="stripe-card-mount" style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px;"></div>
-                </div>
-            `,
-            confirmButtonText: 'Autorizar pago real (Sandbox)',
-            showCancelButton: true,
-            cancelButtonText: 'Cancelar',
-            allowOutsideClick: false,
-            didOpen: () => {
-                cardElement.mount('#stripe-card-mount');
-            },
-            preConfirm: async () => {
-                Swal.showLoading();
-                const { paymentIntent, error } = await stripe.confirmCardPayment(clientSecret, {
-                    payment_method: { card: cardElement }
-                });
-
-                if (error) {
-                    Swal.showValidationMessage(error.message);
-                    return false;
-                }
-
-                await fetch(`/api/checkout/confirm/${orderId}`, { method: 'POST' });
-                return true;
-            }
-        });
-
-        localStorage.removeItem('cart_id');
-        await Swal.fire({
-            icon: 'success',
-            title: 'Â¡Pago Exitoso con Stripe!',
-            html: `<b>Orden #${orderId} confirmada</b>`
-        });
-        window.location.href = '/';
+        if (checkoutUrl) {
+            localStorage.removeItem('cart_id');
+            window.location.href = checkoutUrl;
+        } else {
+            throw new Error('No se generó el enlace de pago de Stripe.');
+        }
 
     } catch (e) {
-        Swal.fire({ icon: 'error', title: 'Error', text: e.message });
+        Swal.fire({ icon: 'error', title: 'Error con Stripe', text: e.message });
     }
 }
 

@@ -19,6 +19,7 @@ class CheckoutRequest(BaseModel):
     cart_id: str
     metodo: str  # TARJETA_SIMULADA, YAPE, STRIPE
     shipping: ShippingInfo
+    origin: str = "http://localhost:10000"
 
 @router.post("/", summary="Procesar pago de una orden")
 def process_checkout(req: CheckoutRequest, db: Session = Depends(get_db)):
@@ -49,6 +50,7 @@ def process_checkout(req: CheckoutRequest, db: Session = Depends(get_db)):
     order = models.Order(
         total=total,
         estado="PENDIENTE",
+        metodo_pago=req.metodo,
         shipping_name=req.shipping.nombre,
         shipping_email=req.shipping.email,
         shipping_address=req.shipping.direccion,
@@ -66,10 +68,14 @@ def process_checkout(req: CheckoutRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Monto no válido para el método seleccionado")
 
     # Datos adicionales para el procesador (por ejemplo email del cliente)
-    datos_pago = {"email": req.shipping.email}
+    datos_pago = {"email": req.shipping.email, "origin": req.origin}
     res = estrategia.procesar(total, datos_pago)
-    estado_orden = "PAGADO" if res.get("success") and res.get("estado") == "PAGADO" else res.get("estado", "PENDIENTE")
-    if not res.get("success"):
+    estado_respuesta = str(res.get("estado") or "").upper()
+    if res.get("success") and estado_respuesta in {"PAGADO", "APPROVED"}:
+        estado_orden = "PAGADO"
+    elif res.get("success") and estado_respuesta in {"PENDIENTE", "PENDING"}:
+        estado_orden = "PENDIENTE"
+    else:
         estado_orden = "RECHAZADO"
 
     order.estado = estado_orden
@@ -89,7 +95,12 @@ def process_checkout(req: CheckoutRequest, db: Session = Depends(get_db)):
             db.delete(it)
 
     db.commit()
-    return {"success": res.get("success"), "order_id": order.id, "payment_result": res}
+    return {
+        "success": res.get("success"),
+        "order_id": order.id,
+        "payment_result": res,
+        "detail": res.get("mensaje") or res.get("error") or "Pago rechazado"
+    }
 
 @router.get("/config/stripe", summary="Obtener llave publica para UI")
 def get_stripe_config():
