@@ -87,7 +87,8 @@
                 </div>
 
                 <p class="small-text">El total se calcula en el backend y se procesa de forma segura al momento del
-                    pago.</p>
+                    pago. Esta pantalla no realiza el cobro por sí misma; para un pago real debes usar datos reales y
+                    una cuenta o pasarela autorizada.</p>
             </div>
 
             <div class="panel payment-panel">
@@ -99,36 +100,55 @@
                         <strong id="selected-method">Tarjeta Simulada</strong>
                     </div>
                     <div class="payment-summary-note" id="payment-note">
-                        Elige un método y revisa las instrucciones antes de confirmar.
+                        Este checkout está en modo demostración. Si vas a pagar con una cuenta o tarjeta real, debes
+                        usar datos reales y completar la verificación en la pasarela autorizada.
                     </div>
                 </div>
 
                 <div class="checkout-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="shipping-name">Nombre completo</label>
-                            <input id="shipping-name" class="form-control" type="text" placeholder="Ej. Carlos Rojas">
+                    <div class="payment-card-preview">
+                        <div class="card-header">
+                            <span class="card-title">Pago con tarjeta</span>
+                            <span class="card-badge">TEST MODE</span>
                         </div>
                         <div class="form-group">
                             <label for="shipping-email">Correo electrónico</label>
                             <input id="shipping-email" class="form-control" type="email"
                                 placeholder="ejemplo@correo.com">
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="shipping-address">Dirección de envío</label>
-                        <input id="shipping-address" class="form-control" type="text"
-                            placeholder="Ingresa tu dirección exacta">
-                        <span class="form-helper">Incluye distrito o referencia si lo deseas.</span>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="shipping-city">Ciudad</label>
-                            <input id="shipping-city" class="form-control" type="text" placeholder="Ej. Lima">
+                        <div class="form-group card-entry-group">
+                            <label>Información de la tarjeta</label>
+                            <div class="card-element-placeholder">
+                                <div class="card-field">1234 1234 1234 1234</div>
+                                <div class="card-field card-field-small">MM / AA</div>
+                                <div class="card-field card-field-small">CVC</div>
+                            </div>
+                            <div class="card-icons">VISA • MASTERCARD • AMEX</div>
                         </div>
                         <div class="form-group">
-                            <label for="shipping-postal">Código postal</label>
-                            <input id="shipping-postal" class="form-control" type="text" placeholder="Ej. 15001">
+                            <label for="card-name">Nombre en la tarjeta</label>
+                            <input id="card-name" class="form-control" type="text" placeholder="Nombre en la tarjeta">
+                        </div>
+                        <div class="form-group">
+                            <label for="shipping-address">Dirección de facturación</label>
+                            <input id="shipping-address" class="form-control" type="text"
+                                placeholder="Introducir dirección">
+                            <span class="form-helper">Introduce la dirección de forma manual</span>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="shipping-city">Ciudad</label>
+                                <input id="shipping-city" class="form-control" type="text" placeholder="Ej. Lima">
+                            </div>
+                            <div class="form-group">
+                                <label for="shipping-postal">Código postal</label>
+                                <input id="shipping-postal" class="form-control" type="text" placeholder="Ej. 15001">
+                                <span class="form-helper">Si no lo conoces, puedes dejarlo vacío.</span>
+                            </div>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label"><input type="checkbox" id="save-card-info"> Guarda la
+                                información para pagar más rápido la próxima vez</label>
                         </div>
                     </div>
                 </div>
@@ -136,23 +156,38 @@
                 <div class="payment-tabs">
                     <label class="method-opt selected" id="label-tarjeta">
                         <input type="radio" name="metodo_pago" value="TARJETA_SIMULADA" checked>
-                        <span>💳 Tarjeta Simulada</span>
+                        <span class="method-content">
+                            <strong>💳 Tarjeta de crédito o débito</strong>
+                            <small>Pago con tarjeta en modo demostración</small>
+                        </span>
                     </label>
                     <label class="method-opt" id="label-yape">
                         <input type="radio" name="metodo_pago" value="YAPE">
-                        <span>🟣 Yape Simulado</span>
+                        <span class="method-content">
+                            <strong>🟣 Yape</strong>
+                            <small>Pago rápido con tu cuenta Yape</small>
+                        </span>
                     </label>
                     <label class="method-opt" id="label-stripe">
                         <input type="radio" name="metodo_pago" value="STRIPE">
-                        <span>🌐 Stripe Sandbox</span>
+                        <span class="method-content">
+                            <strong>🌐 Stripe</strong>
+                            <small>Procesa el pago con la pasarela Stripe</small>
+                        </span>
                     </label>
                     <label class="method-opt" id="label-paypal">
                         <input type="radio" name="metodo_pago" value="PAYPAL">
-                        <span>🔵 PayPal Sandbox</span>
+                        <span class="method-content">
+                            <strong>🔵 PayPal</strong>
+                            <small>Pago con cuenta PayPal en modo prueba</small>
+                        </span>
                     </label>
                     <label class="method-opt" id="label-mercadopago">
                         <input type="radio" name="metodo_pago" value="MERCADOPAGO">
-                        <span>🟠 Mercado Pago (Sandbox)</span>
+                        <span class="method-content">
+                            <strong>🟠 Mercado Pago</strong>
+                            <small>Pago con tu cuenta Mercado Pago</small>
+                        </span>
                     </label>
                 </div>
 
@@ -212,7 +247,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="/static/js/app.js?v=2.0"></script>
+    <script src="/static/js/app.js?v=3.0"></script>
 </body>
 
 </html>

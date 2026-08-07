@@ -22,13 +22,14 @@ function formatSoles(amount) {
 function updatePaymentInfo() {
     const selectedMethod = document.querySelector('input[name="metodo_pago"]:checked');
     const methodLabel = selectedMethod?.value || 'TARJETA_SIMULADA';
+
     const selectedMethodText = {
-        TARJETA_SIMULADA: 'Tarjeta de crÃ©dito o dÃ©bito',
+        TARJETA_SIMULADA: 'Tarjeta de credito o debito',
         YAPE: 'Yape',
         STRIPE: 'Stripe',
         PAYPAL: 'PayPal',
         MERCADOPAGO: 'Mercado Pago'
-    }[methodLabel] || 'MÃ©todo de pago';
+    }[methodLabel] || 'Metodo de pago';
 
     const noteEl = document.getElementById('payment-note');
     const selectedEl = document.getElementById('selected-method');
@@ -40,46 +41,25 @@ function updatePaymentInfo() {
     if (selectedEl) selectedEl.textContent = selectedMethodText;
     if (noteEl) {
         noteEl.textContent = {
-            TARJETA_SIMULADA: 'Este checkout estÃ¡ en modo demostraciÃ³n. Para un pago real con tarjeta, debes usar datos reales y completar la verificaciÃ³n en la pasarela autorizada.',
-            YAPE: 'Este checkout estÃ¡ en modo demostraciÃ³n. Para un pago real, debes usar tu cuenta real de Yape y completar la verificaciÃ³n en la app.',
-            STRIPE: 'Si vas a usar una cuenta real, inicia sesiÃ³n en Stripe y completa el pago desde la pasarela con datos reales.',
-            PAYPAL: 'Si vas a usar una cuenta real, inicia sesiÃ³n en PayPal y completa el pago desde la pasarela con datos reales.',
-            MERCADOPAGO: 'Si vas a usar una cuenta real, inicia sesiÃ³n en Mercado Pago y completa el pago desde la pasarela con datos reales.'
-        }[methodLabel] || 'Elige un mÃ©todo para ver las instrucciones.';
+            TARJETA_SIMULADA: 'Este checkout esta en modo demostracion. Los datos de tarjeta son simulados.',
+            YAPE: 'Se abrira un QR de Yape para simular el pago.',
+            STRIPE: 'Seras enviado a la pagina oficial de Stripe Sandbox para completar el pago.',
+            PAYPAL: 'Si tienes credenciales reales, se procesara con PayPal; de lo contrario usara modo demo.',
+            MERCADOPAGO: 'Si tienes acceso token real, se procesara con Mercado Pago; de lo contrario usara modo demo.'
+        }[methodLabel] || 'Elige un metodo para ver las instrucciones.';
     }
     if (detailsEl && flowBox && flowText && stepBadge) {
         const content = {
-            TARJETA_SIMULADA: {
-                step: 'Paso 2 Â· ValidaciÃ³n',
-                text: 'Se validarÃ¡ el pedido y se solicitarÃ¡ la informaciÃ³n de la tarjeta en el flujo de prueba.'
-            },
-            YAPE: {
-                step: 'Paso 2 Â· ValidaciÃ³n',
-                text: 'Se prepararÃ¡ la orden para completar el pago con Yape y confirmar la transferencia.'
-            },
-            STRIPE: {
-                step: 'Paso 2 Â· Pasarela',
-                text: 'Se intentarÃ¡ abrir el flujo de Stripe con datos reales si tienes credenciales configuradas.'
-            },
-            PAYPAL: {
-                step: 'Paso 2 Â· Pasarela',
-                text: 'Se abrirÃ¡ la experiencia de PayPal para completar el pago en modo prueba o real.'
-            },
-            MERCADOPAGO: {
-                step: 'Paso 2 Â· Pasarela',
-                text: 'Se intentarÃ¡ iniciar el pago en Mercado Pago con la cuenta y credenciales correspondientes.'
-            }
-        }[methodLabel] || {
-            step: 'Paso 1 Â· SelecciÃ³n',
-            text: 'Selecciona un mÃ©todo de pago para comenzar el proceso.'
-        };
+            TARJETA_SIMULADA: { step: 'Paso 2 - Validacion', text: 'Se validara el pedido y se solicitara la informacion de la tarjeta en el flujo de prueba.' },
+            YAPE: { step: 'Paso 2 - Validacion', text: 'Se preparara la orden para completar el pago con Yape.' },
+            STRIPE: { step: 'Paso 2 - Pasarela', text: 'Seras redirigido a Stripe Checkout para completar el pago con tarjeta real.' },
+            PAYPAL: { step: 'Paso 2 - Pasarela', text: 'Se abrira la experiencia de PayPal para completar el pago.' },
+            MERCADOPAGO: { step: 'Paso 2 - Pasarela', text: 'Se iniciara el pago en Mercado Pago con la cuenta correspondiente.' }
+        }[methodLabel] || { step: 'Paso 1 - Seleccion', text: 'Selecciona un metodo de pago para comenzar.' };
 
         stepBadge.textContent = content.step;
-        flowText.innerHTML = `
-            <strong>${selectedMethodText}</strong><br>
-            <span>${content.text}</span>
-        `;
-        flowBox.style.background = methodLabel === 'STRIPE' || methodLabel === 'PAYPAL' || methodLabel === 'MERCADOPAGO'
+        flowText.innerHTML = `<strong>${selectedMethodText}</strong><br><span>${content.text}</span>`;
+        flowBox.style.background = ['STRIPE', 'PAYPAL', 'MERCADOPAGO'].includes(methodLabel)
             ? 'linear-gradient(135deg, #eff6ff, #f8fafc)'
             : '#f8fafc';
     }
@@ -87,13 +67,12 @@ function updatePaymentInfo() {
 
 function getShippingData() {
     const fields = [
-        { id: 'shipping-name', key: 'nombre', label: 'Nombre completo' },
-        { id: 'shipping-email', key: 'email', label: 'Correo electrÃ³nico' },
-        { id: 'shipping-address', key: 'direccion', label: 'DirecciÃ³n' },
-        { id: 'shipping-city', key: 'ciudad', label: 'Ciudad' },
-        { id: 'shipping-postal', key: 'postal', label: 'CÃ³digo postal' }
+        { id: 'shipping-name', key: 'nombre' },
+        { id: 'shipping-email', key: 'email' },
+        { id: 'shipping-address', key: 'direccion' },
+        { id: 'shipping-city', key: 'ciudad' },
+        { id: 'shipping-postal', key: 'postal' }
     ];
-
     const data = {};
     for (const field of fields) {
         const el = document.getElementById(field.id);
@@ -106,10 +85,11 @@ function getShippingData() {
 }
 
 // ================================================
-// INICIALIZACIÃ“N
+// INICIALIZACION
 // ================================================
 document.addEventListener('DOMContentLoaded', () => {
     updateCartBadge();
+
     if (document.getElementById('products-container')) {
         loadProducts();
         setupProductForm();
@@ -125,22 +105,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
-    if (document.getElementById('cart-items-container')) renderCartPage();
-    if (document.getElementById('checkout-items-list')) {
-        setupCheckout();
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'Pago sandbox',
-                text: 'Al elegir Stripe, PayPal o Mercado Pago, el sistema intentarÃ¡ abrir el flujo real de prueba si tienes credenciales configuradas.',
-                icon: 'info',
-                confirmButtonText: 'Entendido',
-                timer: 6000,
-                timerProgressBar: true
-            });
-        }
+
+    if (document.getElementById('cart-items-container')) {
+        renderCartPage();
     }
 
-    // Estilar radios de checkout
+    if (document.getElementById('checkout-items-list')) {
+        setupCheckout();
+    }
+
     document.querySelectorAll('input[name="metodo_pago"]').forEach(radio => {
         radio.addEventListener('change', () => {
             document.querySelectorAll('.method-opt').forEach(el => el.classList.remove('selected'));
@@ -159,25 +132,31 @@ async function updateCartBadge() {
         const res = await fetch(`/api/cart/${CART_ID}`);
         if (res.ok) {
             const data = await res.json();
-            const count = data.items.reduce((sum, i) => sum + i.cantidad, 0);
+            const count = data.items ? data.items.reduce((sum, i) => sum + i.cantidad, 0) : 0;
             document.querySelectorAll('#cart-count').forEach(el => el.textContent = count || 0);
         }
     } catch (e) { }
 }
 
 // ================================================
-// PÃGINA DE INICIO â€” CATÃLOGO
+// PAGINA DE INICIO - CATALOGO
 // ================================================
 async function loadProducts(query = '') {
     const box = document.getElementById('products-container');
+    if (!box) return;
+    box.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b;">Cargando productos...</div>';
+
     try {
         const url = query ? `/api/products/?q=${encodeURIComponent(query)}` : '/api/products/';
         const res = await fetch(url);
+
+        if (!res.ok) throw new Error('Error de servidor: ' + res.status);
+
         const products = await res.json();
         box.innerHTML = '';
 
         if (!products.length) {
-            box.innerHTML = `<div class="empty-state"><div class="emoji">ðŸ“¦</div><h3>Sin productos disponibles</h3><p>El catÃ¡logo estÃ¡ vacÃ­o por el momento.</p></div>`;
+            box.innerHTML = `<div class="empty-state"><div class="emoji">📦</div><h3>Sin productos disponibles</h3><p>El catalogo esta vacio por el momento.</p></div>`;
             return;
         }
 
@@ -185,8 +164,7 @@ async function loadProducts(query = '') {
             const card = document.createElement('div');
             card.className = 'product-card';
             card.innerHTML = `
-                <img src="${p.imagen || 'https://via.placeholder.com/280x180?text=Imagen'}"
-                     class="product-img" alt="${p.nombre}">
+                <img src="${p.imagen || 'https://via.placeholder.com/280x180?text=Imagen'}" class="product-img" alt="${p.nombre}">
                 <div class="product-info">
                     <h3>${p.nombre}</h3>
                     <p class="product-desc">${p.descripcion || ''}</p>
@@ -203,7 +181,7 @@ async function loadProducts(query = '') {
             box.appendChild(card);
         });
     } catch (e) {
-        box.innerHTML = '<div class="empty-state"><div class="emoji">âš ï¸</div><h3>Error al cargar</h3><p>No se pudo conectar con el servidor.</p></div>';
+        box.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div><h3>Error al cargar</h3><p>No se pudo conectar con el servidor.<br><small>${e.message}</small></p></div>`;
     }
 }
 
@@ -245,12 +223,15 @@ async function setupProductForm() {
         }
     });
 
-    document.getElementById('cancel-edit').style.display = 'none';
-    document.getElementById('cancel-edit').addEventListener('click', () => {
-        form.reset();
-        document.getElementById('product-id').value = '';
-        document.getElementById('cancel-edit').style.display = 'none';
-    });
+    const cancelBtn = document.getElementById('cancel-edit');
+    if (cancelBtn) {
+        cancelBtn.style.display = 'none';
+        cancelBtn.addEventListener('click', () => {
+            form.reset();
+            document.getElementById('product-id').value = '';
+            cancelBtn.style.display = 'none';
+        });
+    }
 }
 
 async function startEditProduct(id) {
@@ -265,7 +246,6 @@ async function startEditProduct(id) {
     document.getElementById('product-image').value = product.imagen || '';
     const cancelBtn = document.getElementById('cancel-edit');
     if (cancelBtn) cancelBtn.style.display = 'inline-block';
-
     if (typeof openProductModal === 'function') openProductModal();
     document.getElementById('product-name').focus();
 }
@@ -283,20 +263,21 @@ function closeProductModal() {
         modal.classList.remove('show');
         const form = document.getElementById('product-form');
         if (form) form.reset();
-        document.getElementById('product-id').value = '';
+        const pid = document.getElementById('product-id');
+        if (pid) pid.value = '';
     }
 }
 
 async function deleteProduct(id) {
-    const confirm = await Swal.fire({
+    const result = await Swal.fire({
         title: 'Eliminar producto',
-        text: 'Â¿Deseas eliminar este producto del catÃ¡logo?',
+        text: '¿Deseas eliminar este producto del catalogo?',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'SÃ­, eliminar',
+        confirmButtonText: 'Si, eliminar',
         cancelButtonText: 'Cancelar'
     });
-    if (!confirm.isConfirmed) return;
+    if (!result.isConfirmed) return;
 
     const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
     if (res.ok) {
@@ -321,23 +302,16 @@ async function addToCart(id, nombre) {
         if (!res.ok) throw new Error();
 
         updateCartBadge();
-
         Swal.fire({
             icon: 'success',
-            title: 'Â¡Agregado al carrito!',
-            text: `${nombre} fue aÃ±adido exitosamente.`,
+            title: '¡Agregado al carrito!',
+            text: `${nombre} fue anadido exitosamente.`,
             timer: 1800,
             showConfirmButton: false,
-            background: '#fff',
-            color: '#1e293b',
             iconColor: '#16a34a',
         });
     } catch (e) {
-        Swal.fire({
-            icon: 'error', title: 'Error',
-            text: 'No se pudo agregar el producto.',
-            background: '#fff', color: '#1e293b'
-        });
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo agregar el producto.' });
     }
 }
 
@@ -346,6 +320,7 @@ async function addToCart(id, nombre) {
 // ================================================
 async function renderCartPage() {
     const box = document.getElementById('cart-items-container');
+    if (!box) return;
     try {
         const res = await fetch(`/api/cart/${CART_ID}`);
         const data = await res.json();
@@ -355,12 +330,10 @@ async function renderCartPage() {
         if (!data.items || data.items.length === 0) {
             box.innerHTML = `
                 <div class="empty-state">
-                    <div class="emoji">ðŸ›’</div>
-                    <h3>Tu carrito estÃ¡ vacÃ­o</h3>
-                    <p>Agrega productos desde el <a href="/">catÃ¡logo</a>.</p>
+                    <div class="emoji">🛒</div>
+                    <h3>Tu carrito esta vacio</h3>
+                    <p>Agrega productos desde el <a href="/">catalogo</a>.</p>
                 </div>`;
-
-            // Actualizar totales en cero
             updateCartTotals(0);
             return;
         }
@@ -368,8 +341,7 @@ async function renderCartPage() {
         data.items.forEach(item => {
             box.innerHTML += `
                 <div class="cart-item">
-                    <img src="${item.imagen || 'https://via.placeholder.com/88x72'}"
-                         class="cart-item-img" alt="${item.nombre}">
+                    <img src="${item.imagen || 'https://via.placeholder.com/88x72'}" class="cart-item-img" alt="${item.nombre}">
                     <div class="cart-item-detail">
                         <h4>${item.nombre}</h4>
                         <p class="cart-item-desc">Precio unitario: ${formatSoles(item.precio)}</p>
@@ -378,7 +350,7 @@ async function renderCartPage() {
                     <div class="cart-item-actions">
                         <button class="btn-danger-text" onclick="removeFromCart(${item.product_id})">Quitar</button>
                         <div class="qty-control">
-                            <button class="qty-btn" onclick="changeQty(${item.product_id}, ${item.cantidad - 1})">âˆ’</button>
+                            <button class="qty-btn" onclick="changeQty(${item.product_id}, ${item.cantidad - 1})">−</button>
                             <span class="qty-num">${item.cantidad}</span>
                             <button class="qty-btn" onclick="changeQty(${item.product_id}, ${item.cantidad + 1})">+</button>
                         </div>
@@ -391,26 +363,21 @@ async function renderCartPage() {
         updateCartBadge();
 
     } catch (e) {
-        box.innerHTML = '<div class="empty-state"><div class="emoji">âš ï¸</div><h3>Error al cargar</h3></div>';
+        box.innerHTML = '<div class="empty-state"><div class="emoji">⚠️</div><h3>Error al cargar</h3></div>';
     }
 }
 
 function updateCartTotals(baseTotal) {
     const igv = baseTotal * IGV_RATE;
     const total = baseTotal + ENVIO;
-
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = formatSoles(val); };
     set('cart-subtotal', baseTotal);
     set('cart-igv', igv);
     set('cart-total', total);
 }
 
-// ================================================
-// CAMBIAR CANTIDAD
-// ================================================
 async function changeQty(productId, newQty) {
     if (newQty <= 0) return removeFromCart(productId);
-
     await fetch(`/api/cart/${CART_ID}/update/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -419,9 +386,6 @@ async function changeQty(productId, newQty) {
     renderCartPage();
 }
 
-// ================================================
-// QUITAR DEL CARRITO
-// ================================================
 async function removeFromCart(id) {
     await fetch(`/api/cart/${CART_ID}/remove/${id}`, { method: 'DELETE' });
     renderCartPage();
@@ -430,36 +394,19 @@ async function removeFromCart(id) {
 // ================================================
 // CHECKOUT - PAGO FINAL
 // ================================================
-function showPaymentModal(title, body, progress) {
-    const modal = document.getElementById('payment-modal');
-    const titleEl = document.getElementById('payment-modal-title');
-    const bodyEl = document.getElementById('payment-modal-body');
-    const progressEl = document.getElementById('payment-modal-progress');
-    if (!modal || !titleEl || !bodyEl || !progressEl) return;
-    titleEl.textContent = title;
-    bodyEl.innerHTML = body;
-    progressEl.textContent = progress;
-    modal.style.display = 'flex';
-}
-
-function closePaymentModal() {
-    const modal = document.getElementById('payment-modal');
-    if (modal) modal.style.display = 'none';
-}
-
 async function setupCheckout() {
     try {
         const res = await fetch(`/api/cart/${CART_ID}`);
         const data = await res.json();
 
         const listEl = document.getElementById('checkout-items-list');
+        if (!listEl) return;
         listEl.innerHTML = '';
 
         if (!data.items || data.items.length === 0) {
             Swal.fire({
-                icon: 'warning', title: 'Carrito vacÃ­o',
+                icon: 'warning', title: 'Carrito vacio',
                 text: 'No hay productos en tu carrito.',
-                background: '#fff', color: '#1e293b',
                 confirmButtonColor: '#2563eb'
             }).then(() => window.location.href = '/');
             return;
@@ -468,15 +415,12 @@ async function setupCheckout() {
         data.items.forEach(i => {
             listEl.innerHTML += `
                 <div class="checkout-item-card">
-                    <img src="${i.imagen || 'https://via.placeholder.com/72'}"
-                         class="checkout-mini-img" alt="${i.nombre}">
+                    <img src="${i.imagen || 'https://via.placeholder.com/72'}" class="checkout-mini-img" alt="${i.nombre}">
                     <div class="checkout-item-info">
                         <h4>${i.nombre}</h4>
-                        <p>${i.cantidad} unidad(es) Â· ${formatSoles(i.precio)}</p>
+                        <p>${i.cantidad} unidad(es) · ${formatSoles(i.precio)}</p>
                     </div>
-                    <div class="checkout-item-price">
-                        ${formatSoles(i.subtotal)}
-                    </div>
+                    <div class="checkout-item-price">${formatSoles(i.subtotal)}</div>
                 </div>
             `;
         });
@@ -490,30 +434,29 @@ async function setupCheckout() {
         set('checkout-total', totalFinal);
 
         const countEl = document.getElementById('checkout-items-count');
-        if (countEl) {
-            const itemsCount = data.items.reduce((sum, item) => sum + item.cantidad, 0);
-            countEl.textContent = itemsCount;
-        }
+        if (countEl) countEl.textContent = data.items.reduce((sum, item) => sum + item.cantidad, 0);
 
         updateCartBadge();
 
     } catch (e) {
-        console.error(e);
+        console.error('Error cargando checkout:', e);
     }
 
-    document.getElementById('btn-pay').addEventListener('click', async () => {
-        const btn = document.getElementById('btn-pay');
-        const method = document.querySelector('input[name="metodo_pago"]:checked').value;
+    const btnPay = document.getElementById('btn-pay');
+    if (!btnPay) return;
+
+    btnPay.addEventListener('click', async () => {
+        const method = document.querySelector('input[name="metodo_pago"]:checked')?.value;
         const msgDiv = document.getElementById('payment-message');
         const shippingData = getShippingData();
 
         if (!shippingData) {
-            Swal.fire({ icon: 'error', title: 'Datos incompletos', text: 'Completa todos los datos de envÃ­o antes de pagar.' });
+            Swal.fire({ icon: 'error', title: 'Datos incompletos', text: 'Completa todos los datos de envio antes de pagar.' });
             return;
         }
 
-        btn.disabled = true;
-        btn.textContent = 'Abriendo pasarela...';
+        btnPay.disabled = true;
+        btnPay.textContent = 'Abriendo pasarela...';
 
         if (method === 'YAPE') {
             await handleYapePayment(shippingData, msgDiv);
@@ -527,8 +470,8 @@ async function setupCheckout() {
             await handleMercadoPagoPayment(shippingData, msgDiv);
         }
 
-        btn.disabled = false;
-        btn.textContent = 'Confirmar pago';
+        btnPay.disabled = false;
+        btnPay.textContent = 'Confirmar pago';
     });
 }
 
@@ -536,20 +479,19 @@ async function setupCheckout() {
 // YAPE
 // ================================================
 async function handleYapePayment(shippingData, msgDiv) {
-    const total = document.getElementById('checkout-total').textContent;
-    const confirm = await Swal.fire({
+    const total = document.getElementById('checkout-total')?.textContent || '';
+    const result = await Swal.fire({
         title: 'Pago con Yape',
         html: `
-            <p>Escanea este cÃ³digo QR con tu app de Yape para pagar <strong>${total}</strong></p>
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=YAPE_FAKE_QR" style="margin: 20px auto; border-radius: 8px;">
-            <p style="color: #64748b; font-size: 0.9em;">(Esto es una simulaciÃ³n del modo sandbox)</p>
+            <p>Escanea este codigo QR con tu app de Yape para pagar <strong>${total}</strong></p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=YAPE_TECHSTORE_DEMO" style="margin: 20px auto; border-radius: 8px; display:block;">
+            <p style="color: #64748b; font-size: 0.9em;">(Simulacion modo sandbox)</p>
         `,
-        confirmButtonText: 'Ya YapeÃ©',
+        confirmButtonText: 'Ya Yapee',
         showCancelButton: true,
         cancelButtonText: 'Cancelar'
     });
-
-    if (confirm.isConfirmed) {
+    if (result.isConfirmed) {
         Swal.fire({ title: 'Verificando...', allowOutsideClick: false });
         Swal.showLoading();
         await procesarBackend('YAPE', shippingData, msgDiv);
@@ -560,20 +502,20 @@ async function handleYapePayment(shippingData, msgDiv) {
 // TARJETA SIMULADA
 // ================================================
 async function handleMockCardPayment(shippingData, msgDiv) {
-    const confirm = await Swal.fire({
+    const result = await Swal.fire({
         title: 'Ingresa tu tarjeta',
         html: `
             <div style="text-align: left;">
-                <label>NÃºmero de Tarjeta</label>
-                <input type="text" class="swal2-input" placeholder="0000 0000 0000 0000" maxlength="19">
+                <label style="display:block;margin-bottom:4px;font-size:0.85em;color:#64748b;">Numero de Tarjeta</label>
+                <input type="text" class="swal2-input" placeholder="0000 0000 0000 0000" maxlength="19" style="width:90%;margin:0 0 12px 0;">
                 <div style="display: flex; gap: 10px;">
                     <div style="flex:1;">
-                        <label>Vencimiento</label>
-                        <input type="text" class="swal2-input" placeholder="MM/AA" maxlength="5">
+                        <label style="display:block;margin-bottom:4px;font-size:0.85em;color:#64748b;">Vencimiento</label>
+                        <input type="text" class="swal2-input" placeholder="MM/AA" maxlength="5" style="width:90%;margin:0;">
                     </div>
                     <div style="flex:1;">
-                        <label>CVV</label>
-                        <input type="text" class="swal2-input" placeholder="123" maxlength="3">
+                        <label style="display:block;margin-bottom:4px;font-size:0.85em;color:#64748b;">CVV</label>
+                        <input type="text" class="swal2-input" placeholder="123" maxlength="3" style="width:90%;margin:0;">
                     </div>
                 </div>
             </div>
@@ -582,8 +524,7 @@ async function handleMockCardPayment(shippingData, msgDiv) {
         showCancelButton: true,
         cancelButtonText: 'Cancelar'
     });
-
-    if (confirm.isConfirmed) {
+    if (result.isConfirmed) {
         Swal.fire({ title: 'Procesando cargo...', allowOutsideClick: false });
         Swal.showLoading();
         await procesarBackend('TARJETA_SIMULADA', shippingData, msgDiv);
@@ -591,14 +532,12 @@ async function handleMockCardPayment(shippingData, msgDiv) {
 }
 
 // ================================================
-// STRIPE CHECKOUT (REAL SANDBOX HOSPEDADO)
+// STRIPE CHECKOUT (REAL SANDBOX - PAGINA OFICIAL)
 // ================================================
 async function handleStripePayment(shippingData, msgDiv) {
-    Swal.fire({ title: 'Redirigiendo a pasarela segura...', allowOutsideClick: false });
+    Swal.fire({ title: 'Redirigiendo a Stripe...', allowOutsideClick: false });
     Swal.showLoading();
-
     try {
-        msgDiv.innerHTML = 'Generando enlace de pago...';
         const originUrl = window.location.origin;
         const orderRes = await fetch('/api/checkout/', {
             method: 'POST',
@@ -613,18 +552,16 @@ async function handleStripePayment(shippingData, msgDiv) {
         const orderData = await orderRes.json();
 
         if (!orderData.success) {
-            throw new Error(orderData.detail || orderData.error || 'Fallo al inicializar sesión Stripe');
+            throw new Error(orderData.detail || orderData.error || 'Fallo al inicializar Stripe');
         }
 
-        const checkoutUrl = orderData.payment_result.checkout_url;
-
+        const checkoutUrl = orderData.payment_result?.checkout_url;
         if (checkoutUrl) {
             localStorage.removeItem('cart_id');
             window.location.href = checkoutUrl;
         } else {
-            throw new Error('No se generó el enlace de pago de Stripe.');
+            throw new Error('No se genero el enlace de Stripe.');
         }
-
     } catch (e) {
         Swal.fire({ icon: 'error', title: 'Error con Stripe', text: e.message });
     }
@@ -634,11 +571,7 @@ async function handleStripePayment(shippingData, msgDiv) {
 // PAYPAL SANDBOX
 // ================================================
 async function handlePayPalPayment(shippingData, msgDiv) {
-    Swal.fire({
-        title: 'Procesando con PayPal',
-        text: 'Si no tienes credenciales reales, el sistema seguirÃ¡ con un pago de demostraciÃ³n en modo sandbox.',
-        allowOutsideClick: false
-    });
+    Swal.fire({ title: 'Procesando con PayPal', text: 'Conectando con la pasarela...', allowOutsideClick: false });
     Swal.showLoading();
     await procesarBackend('PAYPAL', shippingData, msgDiv, false);
 }
@@ -647,17 +580,13 @@ async function handlePayPalPayment(shippingData, msgDiv) {
 // MERCADO PAGO SANDBOX
 // ================================================
 async function handleMercadoPagoPayment(shippingData, msgDiv) {
-    Swal.fire({
-        title: 'Procesando con Mercado Pago',
-        text: 'Se intentarÃ¡ crear un pago real en sandbox si tienes el access token configurado; si no, se usarÃ¡ un modo demo seguro.',
-        allowOutsideClick: false
-    });
+    Swal.fire({ title: 'Procesando con Mercado Pago', text: 'Conectando con la pasarela...', allowOutsideClick: false });
     Swal.showLoading();
     await procesarBackend('MERCADOPAGO', shippingData, msgDiv, true);
 }
 
 // ================================================
-// PROCESADO MOCK (YAPE Y TARJETA)
+// PROCESADO BACKEND (YAPE, TARJETA, PAYPAL, MP)
 // ================================================
 async function procesarBackend(method, shippingData, msgDiv, redirectToGateway = false) {
     try {
@@ -673,9 +602,8 @@ async function procesarBackend(method, shippingData, msgDiv, redirectToGateway =
             if (redirectToGateway && redirectUrl) {
                 localStorage.removeItem('cart_id');
                 await Swal.fire({
-                    icon: 'info',
-                    title: 'Redirigiendo a Mercado Pago',
-                    text: 'SerÃ¡s enviado a la pasarela para completar el pago.',
+                    icon: 'info', title: 'Redirigiendo a pasarela',
+                    text: 'Seras enviado para completar el pago.',
                     confirmButtonText: 'Continuar'
                 });
                 window.location.href = redirectUrl;
@@ -685,18 +613,15 @@ async function procesarBackend(method, shippingData, msgDiv, redirectToGateway =
             localStorage.removeItem('cart_id');
             await Swal.fire({
                 icon: 'success',
-                title: 'Â¡Pago Exitoso!',
-                html: `
-                    <b>Orden #${data.order_id} confirmada</b><br>
-                    <small style="color:#64748b">ID TransacciÃ³n: ${data.payment_result.transaction_id || ''}</small>
-                `
+                title: '¡Pago Exitoso!',
+                html: `<b>Orden #${data.order_id} confirmada</b><br><small style="color:#64748b">ID Transaccion: ${data.payment_result?.transaction_id || ''}</small>`
             });
             window.location.href = '/';
         } else {
-            const errorText = data.payment_result?.mensaje || data.payment_result?.error || data.detail || 'Fallo';
+            const errorText = data.payment_result?.mensaje || data.payment_result?.error || data.detail || 'Fallo en el pago';
             Swal.fire({ icon: 'error', title: 'Pago rechazado', text: errorText });
         }
     } catch (e) {
-        Swal.fire({ icon: 'error', title: 'Error de conexiÃ³n', text: 'Upss. Algo fallÃ³ en la red.' });
+        Swal.fire({ icon: 'error', title: 'Error de conexion', text: 'No se pudo completar el pago. Intenta nuevamente.' });
     }
 }
