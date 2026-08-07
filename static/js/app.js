@@ -1,4 +1,4 @@
-// ================================================
+﻿// ================================================
 // UTILIDADES
 // ================================================
 const IGV_RATE = 0.18;
@@ -23,12 +23,12 @@ function updatePaymentInfo() {
     const selectedMethod = document.querySelector('input[name="metodo_pago"]:checked');
     const methodLabel = selectedMethod?.value || 'TARJETA_SIMULADA';
     const selectedMethodText = {
-        TARJETA_SIMULADA: 'Tarjeta Simulada',
-        YAPE: 'Yape Simulado',
-        STRIPE: 'Stripe Sandbox',
-        PAYPAL: 'PayPal Sandbox',
-        MERCADOPAGO: 'Mercado Pago Sandbox'
-    }[methodLabel] || 'Método de pago';
+        TARJETA_SIMULADA: 'Tarjeta de crÃ©dito o dÃ©bito',
+        YAPE: 'Yape',
+        STRIPE: 'Stripe',
+        PAYPAL: 'PayPal',
+        MERCADOPAGO: 'Mercado Pago'
+    }[methodLabel] || 'MÃ©todo de pago';
 
     const noteEl = document.getElementById('payment-note');
     const selectedEl = document.getElementById('selected-method');
@@ -40,38 +40,38 @@ function updatePaymentInfo() {
     if (selectedEl) selectedEl.textContent = selectedMethodText;
     if (noteEl) {
         noteEl.textContent = {
-            TARJETA_SIMULADA: 'Pago simulado con tarjeta. No requiere datos reales.',
-            YAPE: 'Pago simulado vía Yape. Solo para demostración del flujo.',
-            STRIPE: 'Stripe en modo sandbox. Requiere credenciales reales de Stripe para procesar un pago verdadero.',
-            PAYPAL: 'PayPal Sandbox: requiere credenciales reales de PayPal para crear una orden de pago real.',
-            MERCADOPAGO: 'Mercado Pago Sandbox: requiere un access token real para crear un pago real.'
-        }[methodLabel] || 'Elige un método para ver las instrucciones.';
+            TARJETA_SIMULADA: 'Este checkout estÃ¡ en modo demostraciÃ³n. Para un pago real con tarjeta, debes usar datos reales y completar la verificaciÃ³n en la pasarela autorizada.',
+            YAPE: 'Este checkout estÃ¡ en modo demostraciÃ³n. Para un pago real, debes usar tu cuenta real de Yape y completar la verificaciÃ³n en la app.',
+            STRIPE: 'Si vas a usar una cuenta real, inicia sesiÃ³n en Stripe y completa el pago desde la pasarela con datos reales.',
+            PAYPAL: 'Si vas a usar una cuenta real, inicia sesiÃ³n en PayPal y completa el pago desde la pasarela con datos reales.',
+            MERCADOPAGO: 'Si vas a usar una cuenta real, inicia sesiÃ³n en Mercado Pago y completa el pago desde la pasarela con datos reales.'
+        }[methodLabel] || 'Elige un mÃ©todo para ver las instrucciones.';
     }
     if (detailsEl && flowBox && flowText && stepBadge) {
         const content = {
             TARJETA_SIMULADA: {
-                step: 'Paso 2 · Validación',
-                text: 'Se valida el pedido y se genera un pago de prueba con tarjeta. La compra queda registrada como demostración.'
+                step: 'Paso 2 Â· ValidaciÃ³n',
+                text: 'Se validarÃ¡ el pedido y se solicitarÃ¡ la informaciÃ³n de la tarjeta en el flujo de prueba.'
             },
             YAPE: {
-                step: 'Paso 2 · Validación',
-                text: 'Se inicia la verificación del cobro por Yape y se prepara la orden para el proceso de demostración.'
+                step: 'Paso 2 Â· ValidaciÃ³n',
+                text: 'Se prepararÃ¡ la orden para completar el pago con Yape y confirmar la transferencia.'
             },
             STRIPE: {
-                step: 'Paso 2 · Sandbox',
-                text: 'El backend intentará crear un PaymentIntent real en Stripe si tienes credenciales configuradas. Si no, se devolverá un rechazo seguro.'
+                step: 'Paso 2 Â· Pasarela',
+                text: 'Se intentarÃ¡ abrir el flujo de Stripe con datos reales si tienes credenciales configuradas.'
             },
             PAYPAL: {
-                step: 'Paso 2 · Sandbox',
-                text: 'El backend intentará crear una orden real en PayPal Sandbox si las credenciales están activas.'
+                step: 'Paso 2 Â· Pasarela',
+                text: 'Se abrirÃ¡ la experiencia de PayPal para completar el pago en modo prueba o real.'
             },
             MERCADOPAGO: {
-                step: 'Paso 2 · Sandbox',
-                text: 'El backend intentará crear un pago real en Mercado Pago sandbox si el access token está configurado.'
+                step: 'Paso 2 Â· Pasarela',
+                text: 'Se intentarÃ¡ iniciar el pago en Mercado Pago con la cuenta y credenciales correspondientes.'
             }
         }[methodLabel] || {
-            step: 'Paso 1 · Selección',
-            text: 'Selecciona un método de pago para comenzar el proceso.'
+            step: 'Paso 1 Â· SelecciÃ³n',
+            text: 'Selecciona un mÃ©todo de pago para comenzar el proceso.'
         };
 
         stepBadge.textContent = content.step;
@@ -88,10 +88,10 @@ function updatePaymentInfo() {
 function getShippingData() {
     const fields = [
         { id: 'shipping-name', key: 'nombre', label: 'Nombre completo' },
-        { id: 'shipping-email', key: 'email', label: 'Correo electrónico' },
-        { id: 'shipping-address', key: 'direccion', label: 'Dirección' },
+        { id: 'shipping-email', key: 'email', label: 'Correo electrÃ³nico' },
+        { id: 'shipping-address', key: 'direccion', label: 'DirecciÃ³n' },
         { id: 'shipping-city', key: 'ciudad', label: 'Ciudad' },
-        { id: 'shipping-postal', key: 'postal', label: 'Código postal' }
+        { id: 'shipping-postal', key: 'postal', label: 'CÃ³digo postal' }
     ];
 
     const data = {};
@@ -106,7 +106,7 @@ function getShippingData() {
 }
 
 // ================================================
-// INICIALIZACIÓN
+// INICIALIZACIÃ“N
 // ================================================
 document.addEventListener('DOMContentLoaded', () => {
     updateCartBadge();
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 title: 'Pago sandbox',
-                text: 'Al elegir Stripe, PayPal o Mercado Pago, el sistema intentará abrir el flujo real de prueba si tienes credenciales configuradas.',
+                text: 'Al elegir Stripe, PayPal o Mercado Pago, el sistema intentarÃ¡ abrir el flujo real de prueba si tienes credenciales configuradas.',
                 icon: 'info',
                 confirmButtonText: 'Entendido',
                 timer: 6000,
@@ -166,7 +166,7 @@ async function updateCartBadge() {
 }
 
 // ================================================
-// PÁGINA DE INICIO — CATÁLOGO
+// PÃGINA DE INICIO â€” CATÃLOGO
 // ================================================
 async function loadProducts(query = '') {
     const box = document.getElementById('products-container');
@@ -177,7 +177,7 @@ async function loadProducts(query = '') {
         box.innerHTML = '';
 
         if (!products.length) {
-            box.innerHTML = `<div class="empty-state"><div class="emoji">📦</div><h3>Sin productos disponibles</h3><p>El catálogo está vacío por el momento.</p></div>`;
+            box.innerHTML = `<div class="empty-state"><div class="emoji">ðŸ“¦</div><h3>Sin productos disponibles</h3><p>El catÃ¡logo estÃ¡ vacÃ­o por el momento.</p></div>`;
             return;
         }
 
@@ -203,7 +203,7 @@ async function loadProducts(query = '') {
             box.appendChild(card);
         });
     } catch (e) {
-        box.innerHTML = '<div class="empty-state"><div class="emoji">⚠️</div><h3>Error al cargar</h3><p>No se pudo conectar con el servidor.</p></div>';
+        box.innerHTML = '<div class="empty-state"><div class="emoji">âš ï¸</div><h3>Error al cargar</h3><p>No se pudo conectar con el servidor.</p></div>';
     }
 }
 
@@ -290,10 +290,10 @@ function closeProductModal() {
 async function deleteProduct(id) {
     const confirm = await Swal.fire({
         title: 'Eliminar producto',
-        text: '¿Deseas eliminar este producto del catálogo?',
+        text: 'Â¿Deseas eliminar este producto del catÃ¡logo?',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Sí, eliminar',
+        confirmButtonText: 'SÃ­, eliminar',
         cancelButtonText: 'Cancelar'
     });
     if (!confirm.isConfirmed) return;
@@ -324,8 +324,8 @@ async function addToCart(id, nombre) {
 
         Swal.fire({
             icon: 'success',
-            title: '¡Agregado al carrito!',
-            text: `${nombre} fue añadido exitosamente.`,
+            title: 'Â¡Agregado al carrito!',
+            text: `${nombre} fue aÃ±adido exitosamente.`,
             timer: 1800,
             showConfirmButton: false,
             background: '#fff',
@@ -355,9 +355,9 @@ async function renderCartPage() {
         if (!data.items || data.items.length === 0) {
             box.innerHTML = `
                 <div class="empty-state">
-                    <div class="emoji">🛒</div>
-                    <h3>Tu carrito está vacío</h3>
-                    <p>Agrega productos desde el <a href="/">catálogo</a>.</p>
+                    <div class="emoji">ðŸ›’</div>
+                    <h3>Tu carrito estÃ¡ vacÃ­o</h3>
+                    <p>Agrega productos desde el <a href="/">catÃ¡logo</a>.</p>
                 </div>`;
 
             // Actualizar totales en cero
@@ -378,7 +378,7 @@ async function renderCartPage() {
                     <div class="cart-item-actions">
                         <button class="btn-danger-text" onclick="removeFromCart(${item.product_id})">Quitar</button>
                         <div class="qty-control">
-                            <button class="qty-btn" onclick="changeQty(${item.product_id}, ${item.cantidad - 1})">−</button>
+                            <button class="qty-btn" onclick="changeQty(${item.product_id}, ${item.cantidad - 1})">âˆ’</button>
                             <span class="qty-num">${item.cantidad}</span>
                             <button class="qty-btn" onclick="changeQty(${item.product_id}, ${item.cantidad + 1})">+</button>
                         </div>
@@ -391,7 +391,7 @@ async function renderCartPage() {
         updateCartBadge();
 
     } catch (e) {
-        box.innerHTML = '<div class="empty-state"><div class="emoji">⚠️</div><h3>Error al cargar</h3></div>';
+        box.innerHTML = '<div class="empty-state"><div class="emoji">âš ï¸</div><h3>Error al cargar</h3></div>';
     }
 }
 
@@ -457,7 +457,7 @@ async function setupCheckout() {
 
         if (!data.items || data.items.length === 0) {
             Swal.fire({
-                icon: 'warning', title: 'Carrito vacío',
+                icon: 'warning', title: 'Carrito vacÃ­o',
                 text: 'No hay productos en tu carrito.',
                 background: '#fff', color: '#1e293b',
                 confirmButtonColor: '#2563eb'
@@ -472,7 +472,7 @@ async function setupCheckout() {
                          class="checkout-mini-img" alt="${i.nombre}">
                     <div class="checkout-item-info">
                         <h4>${i.nombre}</h4>
-                        <p>${i.cantidad} unidad(es) · ${formatSoles(i.precio)}</p>
+                        <p>${i.cantidad} unidad(es) Â· ${formatSoles(i.precio)}</p>
                     </div>
                     <div class="checkout-item-price">
                         ${formatSoles(i.subtotal)}
@@ -508,7 +508,7 @@ async function setupCheckout() {
         const shippingData = getShippingData();
 
         if (!shippingData) {
-            Swal.fire({ icon: 'error', title: 'Datos incompletos', text: 'Completa todos los datos de envío antes de pagar.' });
+            Swal.fire({ icon: 'error', title: 'Datos incompletos', text: 'Completa todos los datos de envÃ­o antes de pagar.' });
             return;
         }
 
@@ -521,6 +521,10 @@ async function setupCheckout() {
             await handleMockCardPayment(shippingData, msgDiv);
         } else if (method === 'STRIPE') {
             await handleStripePayment(shippingData, msgDiv);
+        } else if (method === 'PAYPAL') {
+            await handlePayPalPayment(shippingData, msgDiv);
+        } else if (method === 'MERCADOPAGO') {
+            await handleMercadoPagoPayment(shippingData, msgDiv);
         }
 
         btn.disabled = false;
@@ -536,11 +540,11 @@ async function handleYapePayment(shippingData, msgDiv) {
     const confirm = await Swal.fire({
         title: 'Pago con Yape',
         html: `
-            <p>Escanea este código QR con tu app de Yape para pagar <strong>${total}</strong></p>
+            <p>Escanea este cÃ³digo QR con tu app de Yape para pagar <strong>${total}</strong></p>
             <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=YAPE_FAKE_QR" style="margin: 20px auto; border-radius: 8px;">
-            <p style="color: #64748b; font-size: 0.9em;">(Esto es una simulación del modo sandbox)</p>
+            <p style="color: #64748b; font-size: 0.9em;">(Esto es una simulaciÃ³n del modo sandbox)</p>
         `,
-        confirmButtonText: 'Ya Yapeé',
+        confirmButtonText: 'Ya YapeÃ©',
         showCancelButton: true,
         cancelButtonText: 'Cancelar'
     });
@@ -560,7 +564,7 @@ async function handleMockCardPayment(shippingData, msgDiv) {
         title: 'Ingresa tu tarjeta',
         html: `
             <div style="text-align: left;">
-                <label>Número de Tarjeta</label>
+                <label>NÃºmero de Tarjeta</label>
                 <input type="text" class="swal2-input" placeholder="0000 0000 0000 0000" maxlength="19">
                 <div style="display: flex; gap: 10px;">
                     <div style="flex:1;">
@@ -594,12 +598,10 @@ async function handleStripePayment(shippingData, msgDiv) {
     Swal.showLoading();
 
     try {
-        // 1. Obtener la llave publica
         const confRes = await fetch('/api/config/stripe');
         const confData = await confRes.json();
         const stripe = Stripe(confData.public_key);
 
-        // 2. Crear el Intent en el backend
         msgDiv.innerHTML = 'Generando orden segura...';
         const orderRes = await fetch('/api/checkout/', {
             method: 'POST',
@@ -613,7 +615,6 @@ async function handleStripePayment(shippingData, msgDiv) {
         const orderId = orderData.order_id;
         Swal.close();
 
-        // 3. Abrir Popup de Stripe Elements
         const elements = stripe.elements();
         const cardElement = elements.create('card', {
             style: { base: { fontSize: '16px', color: '#1e293b', '::placeholder': { color: '#aab7c4' } } }
@@ -621,14 +622,14 @@ async function handleStripePayment(shippingData, msgDiv) {
 
         await Swal.fire({
             title: 'Pago seguro con Stripe',
-            html: \`
+            html: `
                 <div style="text-align: left; margin-bottom: 20px;">
                     <p style="margin-bottom: 15px; font-size: 0.9em; color:#64748b;">
                         Ingresa una tarjeta de pruebas de Stripe (ej: 4242 4242...).
                     </p>
                     <div id="stripe-card-mount" style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px;"></div>
                 </div>
-            \`,
+            `,
             confirmButtonText: 'Autorizar pago real (Sandbox)',
             showCancelButton: true,
             cancelButtonText: 'Cancelar',
@@ -638,38 +639,63 @@ async function handleStripePayment(shippingData, msgDiv) {
             },
             preConfirm: async () => {
                 Swal.showLoading();
-                const {paymentIntent, error} = await stripe.confirmCardPayment(clientSecret, {
+                const { paymentIntent, error } = await stripe.confirmCardPayment(clientSecret, {
                     payment_method: { card: cardElement }
                 });
-                
+
                 if (error) {
                     Swal.showValidationMessage(error.message);
                     return false;
                 }
-                
-                // Confirmamos a nuestro backend
-                await fetch(\`/api/checkout/confirm/\${orderId}\`, {method: 'POST'});
+
+                await fetch(`/api/checkout/confirm/${orderId}`, { method: 'POST' });
                 return true;
             }
         });
 
-        // 4. Mostrar éxito
         localStorage.removeItem('cart_id');
         await Swal.fire({
-            icon: 'success', title: '¡Pago Exitoso con Stripe!',
-            html: \`<b>Orden #\${orderId} confirmada</b>\`,
+            icon: 'success',
+            title: 'Â¡Pago Exitoso con Stripe!',
+            html: `<b>Orden #${orderId} confirmada</b>`
         });
         window.location.href = '/';
 
     } catch (e) {
-        Swal.fire({icon: 'error', title: 'Error', text: e.message});
+        Swal.fire({ icon: 'error', title: 'Error', text: e.message });
     }
+}
+
+// ================================================
+// PAYPAL SANDBOX
+// ================================================
+async function handlePayPalPayment(shippingData, msgDiv) {
+    Swal.fire({
+        title: 'Procesando con PayPal',
+        text: 'Si no tienes credenciales reales, el sistema seguirÃ¡ con un pago de demostraciÃ³n en modo sandbox.',
+        allowOutsideClick: false
+    });
+    Swal.showLoading();
+    await procesarBackend('PAYPAL', shippingData, msgDiv, false);
+}
+
+// ================================================
+// MERCADO PAGO SANDBOX
+// ================================================
+async function handleMercadoPagoPayment(shippingData, msgDiv) {
+    Swal.fire({
+        title: 'Procesando con Mercado Pago',
+        text: 'Se intentarÃ¡ crear un pago real en sandbox si tienes el access token configurado; si no, se usarÃ¡ un modo demo seguro.',
+        allowOutsideClick: false
+    });
+    Swal.showLoading();
+    await procesarBackend('MERCADOPAGO', shippingData, msgDiv, true);
 }
 
 // ================================================
 // PROCESADO MOCK (YAPE Y TARJETA)
 // ================================================
-async function procesarBackend(method, shippingData, msgDiv) {
+async function procesarBackend(method, shippingData, msgDiv, redirectToGateway = false) {
     try {
         const res = await fetch('/api/checkout/', {
             method: 'POST',
@@ -679,20 +705,34 @@ async function procesarBackend(method, shippingData, msgDiv) {
         const data = await res.json();
 
         if (res.ok && data.success) {
+            const redirectUrl = data.payment_result?.redirect_url;
+            if (redirectToGateway && redirectUrl) {
+                localStorage.removeItem('cart_id');
+                await Swal.fire({
+                    icon: 'info',
+                    title: 'Redirigiendo a Mercado Pago',
+                    text: 'SerÃ¡s enviado a la pasarela para completar el pago.',
+                    confirmButtonText: 'Continuar'
+                });
+                window.location.href = redirectUrl;
+                return;
+            }
+
             localStorage.removeItem('cart_id');
             await Swal.fire({
                 icon: 'success',
-                title: '¡Pago Exitoso!',
-                html: \`
-                    <b>Orden #\${data.order_id} confirmada</b><br>
-                    <small style="color:#64748b">ID Transacción: \${data.payment_result.transaction_id || ''}</small>
-                \`
+                title: 'Â¡Pago Exitoso!',
+                html: `
+                    <b>Orden #${data.order_id} confirmada</b><br>
+                    <small style="color:#64748b">ID TransacciÃ³n: ${data.payment_result.transaction_id || ''}</small>
+                `
             });
             window.location.href = '/';
         } else {
-            Swal.fire({icon: 'error', title: 'Pago rechazado', text: data.detail || 'Fallo'});
+            const errorText = data.payment_result?.mensaje || data.payment_result?.error || data.detail || 'Fallo';
+            Swal.fire({ icon: 'error', title: 'Pago rechazado', text: errorText });
         }
     } catch (e) {
-        Swal.fire({icon: 'error', title: 'Error de conexión', text: 'Upss. Algo falló en la red.'});
+        Swal.fire({ icon: 'error', title: 'Error de conexiÃ³n', text: 'Upss. Algo fallÃ³ en la red.' });
     }
 }
